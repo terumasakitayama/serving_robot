@@ -1,13 +1,18 @@
 const int threshold_ON = 600;
 const int threshold_OFF = 450;
 const int PHASE_A = A0;
-const int AIN1 = 7;
-const int AIN2 = 8;
-const int PWMA = 9;
+const int AIN1 = 9;
+const int AIN2 = 10;
+const int PWMA = 11;
+const int BIN1 = 8;
+const int BIN2 = 7;
+const int PWMB = 6;
+
 const int cpr = 48;
 float Kp = 0.3;
 
-void test(float angle_REF);
+void straight(float angle_REF);
+void curve(float angle_REF);
 
 void setup() {
 
@@ -24,7 +29,7 @@ void setup() {
 
 void loop() {
     Serial.println(analogRead(PHASE_A));
-    float angle_REF = 180;
+    float angle_REF = 180.0;
     //test(angle_REF);
 
 }
@@ -86,3 +91,4 @@ void curve(float angle_REF) {
         }
     }
 }
+*

@@ -24,9 +24,9 @@ int i = 0; // ループの回数を記憶する定数
 
 double destination[2];          // 機体から目的地までの距離と角度を格納する配列
 Position robot_pos ={, };       // ロボットの座標を格納する配列
-bool table_hot = false;         // あったかいテーブルにドリンクがあるかを判別する定数
-bool table_cool = false;        // 冷たいテーブルにドリンクがあるかを判別する定数
-bool sign = true;               // モーターの回転方向を示す。trueで前進
+boolean table_hot = false;         // あったかいテーブルにドリンクがあるかを判別する定数
+boolean table_cool = false;        // 冷たいテーブルにドリンクがあるかを判別する定数
+boolean sign = true;               // モーターの回転方向を示す。trueで前進
 
 
 
