@@ -1,5 +1,5 @@
 {
     "board": "arduino:avr:uno",
     "port": "COM6",
-    "sketch": "test_encoder.ino"
+    "sketch": "serving\\serving.ino"
 }
