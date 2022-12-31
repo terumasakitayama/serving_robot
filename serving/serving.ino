@@ -71,26 +71,26 @@ TaskState task_state = START;
 void straight(float angle_REF); // まっすぐ進むための関数(main_moveで使用)
 void rotate(float angle_REF); // 回転するための関数(main_moveで使用)
 void distance(Object *object, int i, double *p_destination, POSITION *p_robot_pos); // 目的地までの距離と角度を測定する関数(main_moveで使用)
-void main_move(Object *object, int i, POSITION *p_robot_pos, double *p_destination); // 目的地へ動く関数
+void main_move(Object *object, int i, POSITION *p_robot_pos, double *p_destination, int *p_adress); // 目的地へ動く関数
 void pick(); // 物体を把持する関数
 void divide(); // 物体を設置する関数
-void measure_thermo(Object *p_object, int i); // 温度を測る関数
-void measure_light(Object *p_object, int i); // ドリンクの色を測る関数
+void measure_thermo(Object *p_object, int i, int *p_adress); // 温度を測る関数
+void measure_light(Object *p_object, int i, int *p_adress); // ドリンクの色を測る関数
 
 
 //----------------------------------
 // グローバル変数の宣言
 //----------------------------------
 
-int g_i = 0; // ループの回数を記憶する定数
-
-double g_destination[2]; // 機体から目的地までの距離と角度を格納する配列
-POSITION g_robot_pos; // ロボットの座標を格納する配列
-boolean table_hot = false; // あったかいテーブルにドリンクがあるかを判別する定数
-boolean table_cool = false; // 冷たいテーブルにドリンクがあるかを判別する定数
-boolean sign = true; // モーターの回転方向を示す。trueで前進
-boolean tableLR[2] = {false, false}; // 左右のテーブルにドリンクをおいてるかの情報を格納する配列
-Object g_object[7];       // 各座標や温度などを格納する構造体の定義
+int g_i = 0;                            // ループの回数を記憶する定数
+double g_destination[2];                // 機体から目的地までの距離と角度を格納する配列
+POSITION g_robot_pos;                   // ロボットの座標を格納する配列
+boolean table_hot = false;              // あったかいテーブルにドリンクがあるかを判別する定数
+boolean table_cool = false;             // 冷たいテーブルにドリンクがあるかを判別する定数
+boolean sign = true;                    // モーターの回転方向を示す。trueで前進
+boolean tableLR[2] = {false, false};    // 左右のテーブルにドリンクをおいてるかの情報を格納する配列
+Object g_object[7];                     // 各座標や温度などを格納する構造体の定義
+int adress = 0x00;                      // EPROMのアドレス番地
 
 
 
@@ -99,23 +99,23 @@ Object g_object[7];       // 各座標や温度などを格納する構造体の
 //----------------------------------
 
 void setup() {
-    hunger.attach(3); // サーボモータのピンは3と5
+    hunger.attach(3);       // サーボモータのピンは3と5
     bringer.attach(5);
-    hunger.write(90); // サーボモータの初期角度の設定
+    hunger.write(90);       // サーボモータの初期角度の設定
     bringer.write(90);
+
 
     //----------------------------------
     // ドリンクやテーブルなどの座標の格納
     //----------------------------------
 
-
     g_object[0].position = {300, 500};
     g_object[1].position = {500, 500};
     g_object[2].position = {200, 700};
     g_object[3].position = {600, 700};
-    g_object[4].position = {100, 1000}; // テーブル
-    g_object[5].position = {700, 1000}; // テーブル
-    g_object[6].position.y = 1000; // カウンターのy座業
+    g_object[4].position = {100, 1000};         // テーブル
+    g_object[5].position = {700, 1000};         // テーブル
+    g_object[6].position.y = 1000;              // カウンターのy座業
 
 
     // pinModeの設定
@@ -135,7 +135,7 @@ void setup() {
     analogWrite(PWMB, 0);
 
     Serial.begin(115200);
-    delay(500); // サーボモータを適切に回転させるためのdelay
+    delay(500);                 // サーボモータを適切に回転させるためのdelay
 }
 
 //----------------------------------
@@ -149,46 +149,58 @@ void loop() {
             break;
 
         case APPROACH:
-            main_move(g_object, g_i, &g_robot_pos, g_destination);
+            EEPROM.put(adress, g_i);
+            adress += sizeof(g_i);
+            main_move(g_object, g_i, &g_robot_pos, g_destination, &adress);
             task_state = PICKUP;
             break;
 
         case PICKUP:
             pick();
-            measure_light(g_object, g_i);
-            if (g_object[g_i].light > 800) { // 白いほう
-                if (table_cool == false) { // テーブルが空のとき、テーブルに送る
+            measure_light(g_object, g_i, &adress);
+            if (g_object[g_i].light > 800) {        // 白いほう
+                if (table_cool == false) {          // テーブルが空のとき、テーブルに送る
+                    EEPROM.put(adress, table_cool);
+                    adress += sizeof(table_cool);
                     task_state = TABLE_WHITE;
                 } else {
-                    task_state = COUNTER; // テーブルに既にドリンクを置いてるとき、カウンターに送る
+                    EEPROM.put(adress, table_cool);
+                    adress += sizeof(table_cool);
+                    task_state = COUNTER;           // テーブルに既にドリンクを置いてるとき、カウンターに送る
                 }
             } else {
                 if (table_hot == false) {
+                    EEPROM.put(adress, table_hot);
+                    adress += sizeof(table_hot);
                     task_state = TABLE_BLACK;
                 } else {
+                    EEPROM.put(adress, table_hot);
+                    adress += sizeof(table_hot);
                     task_state = COUNTER;
                 }
             }
             break;
 
         case TABLE_WHITE:
+            EEPROM.put(adress, tableLR);
+            adress += sizeof(tableLR);
             if (tableLR[0] == true) {
-                main_move(g_object, TABLE_R, &g_robot_pos, g_destination);
+                main_move(g_object, TABLE_R, &g_robot_pos, g_destination, &adress);
                 table_cool = true;
                 tableLR[1] = true;
                 task_state = PLACE;
                 break;
             } else if (tableLR[1] == true) {
-                main_move(g_object, TABLE_L, &g_robot_pos, g_destination);
+                main_move(g_object, TABLE_L, &g_robot_pos, g_destination, &adress);
                 table_cool = true;
                 tableLR[0] = true;
                 task_state = PLACE;
                 break;
             } else {
-                main_move(g_object, TABLE_R, &g_robot_pos, g_destination);
-                measure_thermo(g_object, g_i);
+                main_move(g_object, TABLE_R, &g_robot_pos, g_destination, &adress);
+                measure_thermo(g_object, g_i, &adress);
                 if (g_object[g_i].tempreture > 40) {
-                    main_move(g_object, TABLE_L, &g_robot_pos, g_destination);
+                    main_move(g_object, TABLE_L, &g_robot_pos, g_destination, &adress);
                     tableLR[0] = true;
                     table_cool = true;
                     task_state = PLACE;
@@ -202,23 +214,25 @@ void loop() {
             break;
 
         case TABLE_BLACK:
+            EEPROM.put(adress, tableLR);
+            adress += sizeof(tableLR);
             if (tableLR[0] == true) {
-                main_move(g_object, TABLE_R, &g_robot_pos, g_destination);
+                main_move(g_object, TABLE_R, &g_robot_pos, g_destination, &adress);
                 table_hot = true;
                 tableLR[1] = true;
                 task_state = PLACE;
                 break;
             } else if (tableLR[1] == true) {
-                main_move(g_object, TABLE_L, &g_robot_pos, g_destination);
+                main_move(g_object, TABLE_L, &g_robot_pos, g_destination, &adress);
                 table_hot = true;
                 tableLR[0] = true;
                 task_state = PLACE;
                 break;
             } else {
-                main_move(g_object, TABLE_R, &g_robot_pos, g_destination);
-                measure_thermo(g_object, g_i);
+                main_move(g_object, TABLE_R, &g_robot_pos, g_destination, &adress);
+                measure_thermo(g_object, g_i, &adress);
                 if (g_object[g_i].tempreture < 40) {
-                    main_move(g_object, TABLE_L, &g_robot_pos, g_destination);
+                    main_move(g_object, TABLE_L, &g_robot_pos, g_destination, &adress);
                     tableLR[0] = true;
                     table_hot = true;
                     task_state = PLACE;
@@ -234,7 +248,7 @@ void loop() {
 
         case COUNTER:
             g_object[5].position.x = g_robot_pos.x;
-            main_move(g_object, 5, &g_robot_pos, g_destination);
+            main_move(g_object, 5, &g_robot_pos, g_destination, &adress);
             task_state = PLACE;
             break;
 
@@ -336,8 +350,16 @@ void rotate(float angle_REF) {
     }
 }
 
-void main_move(Object *object, int i, POSITION *p_robot_pos, double *p_destination) {
+void main_move(Object *object, int i, POSITION *p_robot_pos, double *p_destination, int *p_adress) {
+    EEPROM.put(*p_adress, object[i].position);
+    p_adress += sizeof(object[i].position);
+    EEPROM.put(*p_adress, p_robot_pos);
+    p_adress += sizeof(p_robot_pos);
+
     distance(object, i, p_destination, p_robot_pos);
+    EEPROM.put(*p_adress, p_destination);
+    p_adress += sizeof(p_destination);
+
     rotate(p_destination[0]);
     straight(p_destination[1]);
     p_robot_pos->x = object[i].position.x - (ROBOT_LENGTH * sin(p_destination[0]));
@@ -365,11 +387,15 @@ void divide() {
     bringer.write(90);
 }
 
-void measure_thermo(Object *p_object, int i) {
+void measure_thermo(Object *p_object, int i, int *p_adress) {
     delay(500);
     p_object[i].tempreture = analogRead(THERMO);
+    EEPROM.put(*p_adress, p_object[i].tempreture);
+    p_adress += sizeof(p_object[i].tempreture);
 }
 
-void measure_light(Object *p_object, int i) {
+void measure_light(Object *p_object, int i, int *p_adress) {
     p_object[i].light = analogRead(LIGHT);
+    EEPROM.put(*p_adress, p_object[i].light);
+    p_adress += sizeof(p_object[i].light);
 }
