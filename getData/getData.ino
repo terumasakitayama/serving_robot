@@ -10,7 +10,10 @@ typedef struct {
     double y;
 }pos;
 
+void interface(pos object, pos robot, double *degree);
+
 void setup() {
+    Serial.begin(115200);
     pos robot;
     pos object;
     double degree[2];
@@ -33,58 +36,38 @@ void setup() {
 
 
         Serial.println("-------------------------------------");
-        Serial.println((n + 1) + " 個目のドリンク");
-        Serial.println(" ");
-        Serial.println("ドリンクへ移動するフェーズ");
-        Serial.print("ドリンクのx座標 : ");
-        Serial.println(object.x);
-        Serial.print("ドリンクのy座標 : ");
-        Serial.println(object.y);
-        Serial.print("ロボットのx座標 : ");
-        Serial.println(robot.x);
-        Serial.print("ロボットのy座標 : ");
-        Serial.println(robot.x);
-        Serial.print("目的地までの回転角 : ");
-        Serial.println(degree[0]);
-        Serial.print("直進のための回転角 : ");
-        Serial.println(degree[1]);
-        Serial.println(" ");
-        Serial.println("ドリンクを把持するフェーズ");
+        Serial.print(n);
+        Serial.println(F(" 個目のドリンク"));
+        Serial.println(F(" "));
+        Serial.println(F("ドリンクへ移動するフェーズ"));
+
+        interface(object, robot, degree);
+        Serial.println(F(" "));
+        Serial.println(F("ドリンクを把持するフェーズ"));
         if (light > 800) {
-            Serial.println("ドリンクは白色");
+            Serial.println(F("ドリンクは白色"));
             if (table) {
-                Serial.println("テーブルにすでに白いドリンクを置いているため、カウンターへ移行");
-                Serial.println(" ");
-                Serial.println("白いドリンクを持ち、カウンターへ移行するフェーズ");
+                Serial.println(F("テーブルにすでに白いドリンクを置いているため、カウンターへ移行"));
+                Serial.println(F(" "));
+                Serial.println(F("白いドリンクを持ち、カウンターへ移行するフェーズ"));
                 EEPROM.get(adress, object);
                 adress += sizeof(object);
                 EEPROM.get(adress, robot);
                 adress += sizeof(robot);
                 EEPROM.get(adress, degree);
                 adress += sizeof(degree);
-                Serial.println("y軸に平行に移動");
-                Serial.print("カウンターのx座標 : ");
-                Serial.println(object.x);
-                Serial.print("カウンターのy座標 : ");
-                Serial.println(object.y);
-                Serial.print("ロボットのx座標 : ");
-                Serial.println(robot.x);
-                Serial.print("ロボットのy座標 : ");
-                Serial.println(robot.x);
-                Serial.print("目的地までの回転角 : ");
-                Serial.println(degree[0]);
-                Serial.print("直進のための回転角 : ");
-                Serial.println(degree[1]);
-                Serial.println("カウンターにドリンクを設置したため、次のドリンクへ");
-                Serial.println(" ");
+                Serial.println(F("y軸に平行に移動"));
+                interface(object, robot, degree);
+                Serial.println(F("カウンターにドリンクを設置したため、次のドリンクへ"));
+                Serial.println(F(" "));
 
             } else {
-                Serial.println("テーブルにまだ白いドリンクを置いてないため、テーブルへ移行");
-                Serial.println(" ");
-                Serial.println("白いドリンクを持ち、テーブルへ移行するフェーズ");
+                Serial.println(F("テーブルにまだ白いドリンクを置いてないため、テーブルへ移行"));
+                Serial.println(F(" "));
+                Serial.println(F("白いドリンクを持ち、テーブルへ移行するフェーズ"));
                 if (tableLR[0] == true) {
-                    Serial.println("テーブルの状況 : 左だけが空");
-                    Serial.println("右のテーブルに移行");
+                    Serial.println(F("テーブルの状況 : 左だけが空"));
+                    Serial.println(F("右のテーブルに移行"));
                     EEPROM.get(adress, object);
                     adress += sizeof(object);
                     EEPROM.get(adress, robot);
@@ -92,23 +75,12 @@ void setup() {
                     EEPROM.get(adress, degree);
                     adress += sizeof(degree);
 
-                    Serial.print("テーブルのx座標 : ");
-                    Serial.println(object.x);
-                    Serial.print("テーブルのy座標 : ");
-                    Serial.println(object.y);
-                    Serial.print("ロボットのx座標 : ");
-                    Serial.println(robot.x);
-                    Serial.print("ロボットのy座標 : ");
-                    Serial.println(robot.x);
-                    Serial.print("目的地までの回転角 : ");
-                    Serial.println(degree[0]);
-                    Serial.print("直進のための回転角 : ");
-                    Serial.println(degree[1]);
-                    Serial.println("テーブルにドリンクを設置したため、次のドリンクへ");
+                    interface(object, robot, degree);
+                    Serial.println(F("テーブルにドリンクを設置したため、次のドリンクへ"));
 
                 } else if (tableLR[1] == true) {
-                    Serial.println("テーブルの状況 : 右だけが空");
-                    Serial.println("左のテーブルに移行");
+                    Serial.println(F("テーブルの状況 : 右だけが空"));
+                    Serial.println(F("左のテーブルに移行"));
                     EEPROM.get(adress, object);
                     adress += sizeof(object);
                     EEPROM.get(adress, robot);
@@ -116,23 +88,12 @@ void setup() {
                     EEPROM.get(adress, degree);
                     adress += sizeof(degree);
 
-                    Serial.print("テーブルのx座標 : ");
-                    Serial.println(object.x);
-                    Serial.print("テーブルのy座標 : ");
-                    Serial.println(object.y);
-                    Serial.print("ロボットのx座標 : ");
-                    Serial.println(robot.x);
-                    Serial.print("ロボットのy座標 : ");
-                    Serial.println(robot.x);
-                    Serial.print("目的地までの回転角 : ");
-                    Serial.println(degree[0]);
-                    Serial.print("直進のための回転角 : ");
-                    Serial.println(degree[1]);
-                    Serial.println("テーブルにドリンクを設置したため、次のドリンクへ");
-                    Serial.println(" ");
+                    interface(object, robot, degree);
+                    Serial.println(F("テーブルにドリンクを設置したため、次のドリンクへ"));
+                    Serial.println(F(" "));
                 } else {
-                    Serial.println("テーブルの状況 : 両方とも空");
-                    Serial.println("左のテーブルに移行");
+                    Serial.println(F("テーブルの状況 : 両方とも空"));
+                    Serial.println(F("左のテーブルに移行"));
                     EEPROM.get(adress, object);
                     adress += sizeof(object);
                     EEPROM.get(adress, robot);
@@ -142,83 +103,50 @@ void setup() {
                     EEPROM.get(adress, thermo);
                     adress += sizeof(thermo);
 
-                    Serial.println("テーブルのx座標 : ");
-                    Serial.print(object.x);
-                    Serial.println("テーブルのy座標 : ");
-                    Serial.print(object.y);
-                    Serial.println("ロボットのx座標 : ");
-                    Serial.print(robot.x);
-                    Serial.println("ロボットのy座標 : ");
-                    Serial.print(robot.x);
-                    Serial.println("目的地までの回転角 : ");
-                    Serial.print(degree[0]);
-                    Serial.println("直進のための回転角 : ");
-                    Serial.print(degree[1]);
+                    interface(object, robot, degree);
 
                     if (thermo > 40) {
-                        Serial.println("右のテーブルの温度が高いため、左のテーブルへ移行");
+                        Serial.println(F("右のテーブルの温度が高いため、左のテーブルへ移行"));
                         EEPROM.get(adress, object);
                         adress += sizeof(object);
                         EEPROM.get(adress, robot);
                         adress += sizeof(robot);
                         EEPROM.get(adress, degree);
                         adress += sizeof(degree);
-                        Serial.print("テーブルのx座標 : ");
-                        Serial.println(object.x);
-                        Serial.print("テーブルのy座標 : ");
-                        Serial.println(object.y);
-                        Serial.print("ロボットのx座標 : ");
-                        Serial.println(robot.x);
-                        Serial.print("ロボットのy座標 : ");
-                        Serial.println(robot.x);
-                        Serial.print("目的地までの回転角 : ");
-                        Serial.println(degree[0]);
-                        Serial.print("直進のための回転角 : ");
-                        Serial.println(degree[1]);
-                        Serial.println("右のテーブルへ設置して次のドリンクへ");
-                        Serial.println(" ");
+                        interface(object, robot, degree);
+                        Serial.println(F("右のテーブルへ設置して次のドリンクへ"));
+                        Serial.println(F(" "));
                     } else {
-                        Serial.println("右のテーブルの温度が低いため、設置して次のドリンクへ");
-                        Serial.println(" ");
+                        Serial.println(F("右のテーブルの温度が低いため、設置して次のドリンクへ"));
+                        Serial.println(F(" "));
                     }
                 }
 
             }
         } else {
-            Serial.println("ドリンクは黒色");
+            Serial.println(F("ドリンクは黒色"));
             if (table) {
-                Serial.println("テーブルにすでに黒いドリンクを置いているため、カウンターへ移行");
-                Serial.println(" ");
-                Serial.println("黒いドリンクを持ち、カウンターへ移行するフェーズ");
+                Serial.println(F("テーブルにすでに黒いドリンクを置いているため、カウンターへ移行"));
+                Serial.println(F(" "));
+                Serial.println(F("黒いドリンクを持ち、カウンターへ移行するフェーズ"));
                 EEPROM.get(adress, object);
                 adress += sizeof(object);
                 EEPROM.get(adress, robot);
                 adress += sizeof(robot);
                 EEPROM.get(adress, degree);
                 adress += sizeof(degree);
-                Serial.println("y軸に平行に移動");
-                Serial.print("カウンターのx座標 : ");
-                Serial.println(object.x);
-                Serial.print("カウンターのy座標 : ");
-                Serial.println(object.y);
-                Serial.print("ロボットのx座標 : ");
-                Serial.println(robot.x);
-                Serial.print("ロボットのy座標 : ");
-                Serial.println(robot.x);
-                Serial.print("目的地までの回転角 : ");
-                Serial.println(degree[0]);
-                Serial.print("直進のための回転角 : ");
-                Serial.println(degree[1]);
-                Serial.println("カウンターにドリンクを設置したため、次のドリンクへ");
-                Serial.println(" ");
+                Serial.println(F("y軸に平行に移動"));
+                interface(object, robot, degree);
+                Serial.println(F("カウンターにドリンクを設置したため、次のドリンクへ"));
+                Serial.println(F(" "));
 
             } else {
-                Serial.println("テーブルにまだ黒いドリンクを置いてないため、テーブルへ移行");
-                Serial.println(" ");
-                Serial.println("黒いドリンクを持ち、テーブルへ移行するフェーズ");
+                Serial.println(F("テーブルにまだ黒いドリンクを置いてないため、テーブルへ移行"));
+                Serial.println(F(" "));
+                Serial.println(F("黒いドリンクを持ち、テーブルへ移行するフェーズ"));
                 if (tableLR[0] == true) {
-                    Serial.println("テーブルの状況 : 左だけが空");
-                    Serial.println("右のテーブルに移行");
+                    Serial.println(F("テーブルの状況 : 左だけが空"));
+                    Serial.println(F("右のテーブルに移行"));
                     EEPROM.get(adress, object);
                     adress += sizeof(object);
                     EEPROM.get(adress, robot);
@@ -226,24 +154,13 @@ void setup() {
                     EEPROM.get(adress, degree);
                     adress += sizeof(degree);
 
-                    Serial.print("テーブルのx座標 : ");
-                    Serial.println(object.x);
-                    Serial.print("テーブルのy座標 : ");
-                    Serial.println(object.y);
-                    Serial.print("ロボットのx座標 : ");
-                    Serial.println(robot.x);
-                    Serial.print("ロボットのy座標 : ");
-                    Serial.println(robot.x);
-                    Serial.print("目的地までの回転角 : ");
-                    Serial.println(degree[0]);
-                    Serial.print("直進のための回転角 : ");
-                    Serial.println(degree[1]);
-                    Serial.print("テーブルにドリンクを設置したため、次のドリンクへ");
-                    Serial.println(" ");
+                    interface(object, robot, degree);
+                    Serial.println(F("テーブルにドリンクを設置したため、次のドリンクへ"));
+                    Serial.println(F(" "));
 
                 } else if (tableLR[1] == true) {
-                    Serial.println("テーブルの状況 : 右だけが空");
-                    Serial.println("左のテーブルに移行");
+                    Serial.println(F("テーブルの状況 : 右だけが空"));
+                    Serial.println(F("左のテーブルに移行"));
                     EEPROM.get(adress, object);
                     adress += sizeof(object);
                     EEPROM.get(adress, robot);
@@ -251,23 +168,12 @@ void setup() {
                     EEPROM.get(adress, degree);
                     adress += sizeof(degree);
 
-                    Serial.print("テーブルのx座標 : ");
-                    Serial.println(object.x);
-                    Serial.print("テーブルのy座標 : ");
-                    Serial.println(object.y);
-                    Serial.print("ロボットのx座標 : ");
-                    Serial.println(robot.x);
-                    Serial.print("ロボットのy座標 : ");
-                    Serial.println(robot.x);
-                    Serial.print("目的地までの回転角 : ");
-                    Serial.println(degree[0]);
-                    Serial.print("直進のための回転角 : ");
-                    Serial.println(degree[1]);
-                    Serial.println("テーブルにドリンクを設置したため、次のドリンクへ");
-                    Serial.println(" ");
+                    interface(object, robot, degree);
+                    Serial.println(F("テーブルにドリンクを設置したため、次のドリンクへ"));
+                    Serial.println(F(" "));
                 } else {
-                    Serial.println("テーブルの状況 : 両方とも空");
-                    Serial.println("左のテーブルに移行");
+                    Serial.println(F("テーブルの状況 : 両方とも空"));
+                    Serial.println(F("左のテーブルに移行"));
                     EEPROM.get(adress, object);
                     adress += sizeof(object);
                     EEPROM.get(adress, robot);
@@ -277,44 +183,22 @@ void setup() {
                     EEPROM.get(adress, thermo);
                     adress += sizeof(thermo);
 
-                    Serial.print("テーブルのx座標 : ");
-                    Serial.println(object.x);
-                    Serial.print("テーブルのy座標 : ");
-                    Serial.println(object.y);
-                    Serial.print("ロボットのx座標 : ");
-                    Serial.println(robot.x);
-                    Serial.print("ロボットのy座標 : ");
-                    Serial.println(robot.x);
-                    Serial.print("目的地までの回転角 : ");
-                    Serial.println(degree[0]);
-                    Serial.print("直進のための回転角 : ");
-                    Serial.println(degree[1]);
+                    interface(object, robot, degree);
 
                     if (thermo < 40) {
-                        Serial.println("右のテーブルの温度が低いため、左のテーブルへ移行");
+                        Serial.println(F("右のテーブルの温度が低いため、左のテーブルへ移行"));
                         EEPROM.get(adress, object);
                         adress += sizeof(object);
                         EEPROM.get(adress, robot);
                         adress += sizeof(robot);
                         EEPROM.get(adress, degree);
                         adress += sizeof(degree);
-                        Serial.print("テーブルのx座標 : ");
-                        Serial.println(object.x);
-                        Serial.print("テーブルのy座標 : ");
-                        Serial.println(object.y);
-                        Serial.print("ロボットのx座標 : ");
-                        Serial.println(robot.x);
-                        Serial.print("ロボットのy座標 : ");
-                        Serial.println(robot.x);
-                        Serial.print("目的地までの回転角 : ");
-                        Serial.println(degree[0]);
-                        Serial.print("直進のための回転角 : ");
-                        Serial.println(degree[1]);
-                        Serial.println("右のテーブルへ設置して次のドリンクへ");
-                        Serial.println(" ");
+                        interface(object, robot, degree);
+                        Serial.println(F("右のテーブルへ設置して次のドリンクへ"));
+                        Serial.println(F(" "));
                     } else {
-                        Serial.println("右のテーブルの温度が高いため、設置して次のドリンクへ");
-                        Serial.println(" ");
+                        Serial.println(F("右のテーブルの温度が高いため、設置して次のドリンクへ"));
+                        Serial.println(F(" "));
                     }
                 }
 
@@ -325,4 +209,20 @@ void setup() {
 
 void loop() {
 
+}
+
+
+void interface(pos object, pos robot, double *degree){
+    Serial.print("目的地のx座標 : ");
+    Serial.println(object.x);
+    Serial.print("目的地のy座標 : ");
+    Serial.println(object.y);
+    Serial.print("ロボットのx座標 : ");
+    Serial.println(robot.x);
+    Serial.print("ロボットのy座標 : ");
+    Serial.println(robot.x);
+    Serial.print("目的地までの回転角 : ");
+    Serial.println(degree[0]);
+    Serial.print("直進のための回転角 : ");
+    Serial.println(degree[1]);
 }
