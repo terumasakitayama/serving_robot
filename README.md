@@ -10,10 +10,11 @@
 > test.inoでアームの動きやモーターの動きを確かめるだけのコードを書いた
 
 ### 懸念事項
-*コンパイルは通ったが、getData.inoでarduinoのRAMを超過している可能性あり*
+~~ *コンパイルは通ったが、getData.inoでarduinoのRAMを超過している可能性あり* ~~
 
+Flashから直接読み込める関数Fを使用することで、RAMを節約した。
 
 ## getData.inoはこんな感じでシリアルボードに可視化します。
-Tinkercadは全角文字が文字化けするみたいですが、イメージはこんな感じです。
+いろいろ文字化けしてるけど雰囲気が分かるのでよし
 
-![image](https://user-images.githubusercontent.com/70757835/210130227-9fe7db6e-10a4-4004-b9bd-baed16bb4cc7.png)
+![image](https://user-images.githubusercontent.com/70757835/210486453-d4419a81-4a3b-4cd6-b702-bd6b0b56bfa1.png)
