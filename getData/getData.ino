@@ -36,7 +36,7 @@ void setup() {
 
 
         Serial.println("-------------------------------------");
-        Serial.print(n);
+        Serial.print(n+1);
         Serial.println(F(" 個目のドリンク"));
         Serial.println(F(" "));
         Serial.println(F("ドリンクへ移動するフェーズ"));
