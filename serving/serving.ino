@@ -22,7 +22,7 @@ const double RADIUS = 17.0; // 車輪の半径
 const int OBJECT_NUM = 4; // ドリンクの数
 const int TABLE_L = 4; // 左側のテーブル
 const int TABLE_R = 5; // 右側のテーブル
-#
+
 define PI 3.14159265358979
 
 // ロータリーエンコーダのための定数
@@ -138,7 +138,11 @@ void setup() {
         1000
     }; // テーブル
     g_object[6].position.y = 1000; // カウンターのy座業
-    for (int j = 0; j <= 6; j++) {
+    g_object[7].position = {
+        300,
+        900
+    };
+    for (int j = 0; j <= 7; j++) {
         g_object[j].index = j;
     }
 
@@ -182,26 +186,38 @@ void loop() {
 
         case PICKUP:
             pick();
-            if (g_object[g_i].index == 1 || g_object[g_i].index == 2) { // 白いほう
-                if (tableLR[0] == false || tableLR[1] == false) { // テーブルが空のとき、テーブルに送る
-                    EEPROM.put(adress, false);
-                    adress += sizeof(false);
-                    task_state = TABLE;
+            /*
+            一個目のドリンク(黒)を持ったときのみ、両方のテーブルに行って温度を検知する。
+            */
+            if (g_object[g_i].index == 0) {
+                main_move(g_object, 7, & g_robot_pos, g_destination, & adress);
+                main_move(g_object, table_L, & g_robot_pos, g_destination, & adress);
+                measure_thermo(g_object, TABLE_L);
+                if (g_object[TABLE_L] > 40) {
+                    divide();
+                    tableLR[0] = true;
+                    main_move(g_object, TABLE_R, & g_robot_pos, g_destination, & adress);
+                    measure_thermo(g_object, TABLE_R);
+                    taskstate = APPROACH;
+                    break;
                 } else {
-                    EEPROM.put(adress, true);
-                    adress += sizeof(true);
-                    task_state = COUNTER; // テーブルに既にドリンクを置いてるとき、カウンターに送る
+                    main_move(g_object, TABLE_R, & g_robot_pos, g_destination, & adress);
+                    measure_thermo(g_object, TABLE_R);
+                    if (g_object[TABLE_R] > 40) {
+                        divide();
+                        tableLR[1] = true;
+                        taskstate = APPROACH;
+                        break;
+                    } else {
+                        taskstate = COUNTER;
+                        break;
+                    }
                 }
-            } else {
-                if (tableLR[0] == false || tableLR[1] == false) {
-                    EEPROM.put(adress, false);
-                    adress += sizeof(false);
-                    task_state = TABLE;
-                } else {
-                    EEPROM.put(adress, true);
-                    adress += sizeof(true);
-                    task_state = COUNTER;
+            } else if(g_object[g_i].index == 1 || g_object[g_i].index == 2) {       // 白いドリンクのとき
+                if(g_object[TABLE_L].tempreture < 20 && tableLR[0] == false){
+                    main_move(g_object, TABLE_L, &g_robot_pos, g_destination, &adress);
                 }
+
             }
             break;
 
@@ -209,14 +225,14 @@ void loop() {
             if (g_object[g_i].index == 1 || g_object[g_i].index == 2) {
                 if (tableLR[0] == true) {
                     main_move(g_object, TABLE_R, & g_robot_pos, g_destination, & adress);
-                    measure_thermo(g_object, g_i, & adress);
-                    if(g_object_)
-                    tableLR[1] = true;
+                    measure_thermo(g_object, TABLE_R, & adress);
+                    if (g_object[TABLE_R].temperature)
+                        tableLR[1] = true;
                     task_state = PLACE;
                     break;
                 } else if (tableLR[1] == true) {
                     main_move(g_object, TABLE_L, & g_robot_pos, g_destination, & adress);
-                    table_cool = true;
+
                     tableLR[0] = true;
                     task_state = PLACE;
                     break;
