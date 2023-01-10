@@ -120,28 +120,28 @@ void setup() {
 void loop(){
     switch(g_i){
         case 0:
-            main_move(g_object, g_i, & g_robot_pos, g_destination, & adress);
-            pickup();
-            main_move(g_object, 7, & g_robot_pos, g_destination, & adress);
-            main_move(g_object, table_L, & g_robot_pos, g_destination, & adress);
+            main_move(g_object, g_i, & g_robot_pos, g_destination);
+            pick();
+            main_move(g_object, 7, & g_robot_pos, g_destination);
+            main_move(g_object, TABLE_L, & g_robot_pos, g_destination);
             measure_thermo(g_object, TABLE_L);
-            if (g_object[TABLE_L] > 40) {
+            if (g_object[TABLE_L].tempreture > 40) {
                     divide();
                     tableLR[0] = true;
-                    main_move(g_object, TABLE_R, & g_robot_pos, g_destination, & adress);
+                    main_move(g_object, TABLE_R, & g_robot_pos, g_destination);
                     measure_thermo(g_object, TABLE_R);
                     g_i++;
                     break;
                 } else {
-                    main_move(g_object, TABLE_R, & g_robot_pos, g_destination, & adress);
+                    main_move(g_object, TABLE_R, & g_robot_pos, g_destination);
                     measure_thermo(g_object, TABLE_R);
-                    if (g_object[TABLE_R] > 40) {
+                    if (g_object[TABLE_R].tempreture > 40) {
                         divide();
                         tableLR[1] = true;
                         g_i++;
                         break;
                     } else {
-                        g_object[COUNTER].position.x = robot_pos.x;
+                        g_object[COUNTER].position.x = g_robot_pos.x;
                         main_move(g_object, COUNTER, &g_robot_pos, g_destination);
                         g_i++;
                         break;
@@ -149,21 +149,21 @@ void loop(){
                 }
         
         case 1:         // 白いドリンクの運搬
-            main_move(g_object, g_i, & g_robot_pos, g_destination, & adress);
-            pickup();
-            if(g_object[TABLE_R].temperature > 40 && g_object[TABLE_L].temperature > 40){
-                g_object[COUNTER].position.x = robot_pos.x;
+            main_move(g_object, g_i, & g_robot_pos, g_destination);
+            pick();
+            if(g_object[TABLE_R].tempreture > 40 && g_object[TABLE_L].tempreture > 40){
+                g_object[COUNTER].position.x = g_robot_pos.x;
                 main_move(g_object, COUNTER, &g_robot_pos, g_destination);
                 divide();
                 g_i++;
                 break;
-            }else if(g_object[TABLE_R].temperature < 20){
+            }else if(g_object[TABLE_R].tempreture < 20){
                 main_move(g_object, TABLE_R, &g_robot_pos, g_destination);
                 tableLR[1] = true;
                 divide();
                 g_i++;
                 break;
-            }else if(g_object[TABLE_L].temperature < 20){
+            }else if(g_object[TABLE_L].tempreture < 20){
                 main_move(g_object, TABLE_L, &g_robot_pos, g_destination);
                 tableLR[0] = true;
                 divide();
@@ -173,21 +173,21 @@ void loop(){
 
         case 2:
             main_move(g_object, g_i, & g_robot_pos, g_destination);
-            pickup();
-            if(tableLR[0] == false && g_object[TABLE_L].temperature > 40){
+            pick();
+            if(tableLR[0] == false && g_object[TABLE_L].tempreture > 40){
                 main_move(g_object, TABLE_L, &g_robot_pos, g_destination);
                 tableLR[0] = true;
                 divide();
                 g_i++;
                 break;
-            }else if(tableLR[1] == false && g_object[TABLE_R].temperature > 40){
+            }else if(tableLR[1] == false && g_object[TABLE_R].tempreture > 40){
                 main_move(g_object, TABLE_R, &g_robot_pos, g_destination);
                 tableLR[1] = true;
                 divide();
                 g_i++;
                 break;
             }else{
-                g_object[COUNTER].position.x = robot_pos.x;
+                g_object[COUNTER].position.x = g_robot_pos.x;
                 main_move(g_object, COUNTER, &g_robot_pos, g_destination);
                 divide();
                 g_i++;
@@ -196,21 +196,21 @@ void loop(){
 
         case 3:
             main_move(g_object, g_i, & g_robot_pos, g_destination);
-            pickup();
-            if(tableLR[0] == false && g_object[TABLE_L].temperature < 20){
+            pick();
+            if(tableLR[0] == false && g_object[TABLE_L].tempreture < 20){
                 main_move(g_object, TABLE_L, &g_robot_pos, g_destination);
                 tableLR[0] = true;
                 divide();
                 g_i++;
                 break;
-            }else if(tableLR[1] == false && g_object[TABLE_R].temperature < 20){
+            }else if(tableLR[1] == false && g_object[TABLE_R].tempreture < 20){
                 main_move(g_object, TABLE_R, &g_robot_pos, g_destination);
                 tableLR[1] = true;
                 divide();
                 g_i++;
                 break;
             }else{
-                g_object[COUNTER].position.x = robot_pos.x;
+                g_object[COUNTER].position.x = g_robot_pos.x;
                 main_move(g_object, COUNTER, &g_robot_pos, g_destination);
                 divide();
                 g_i++;

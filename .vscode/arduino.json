@@ -1,5 +1,5 @@
 {
     "board": "arduino:avr:uno",
     "port": "COM6",
-    "sketch": "getData\\getData.ino"
+    "sketch": "new\\new.ino"
 }
