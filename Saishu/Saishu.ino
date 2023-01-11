@@ -286,7 +286,7 @@ void loop() {
     liftarm(30);
   }
   break;
-}  
+}
 
 
 
