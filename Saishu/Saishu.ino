@@ -1,5 +1,4 @@
 
-
 #define PI 3.141592653589793 
 // Rotary Encoder
 int valA, valB;
@@ -7,62 +6,73 @@ int stateA, stateB;
 int edgeA, edgeB;
 int countA, countB;
 
-const int PHASE_A = 5; // Encoder phase A
-const int PHASE_B = 4; // Encoder phase B
+//サーボモータ
+#include <Servo.h>
+Servo servo1;
+Servo servo2;
+int dir=10;//サーボモータが一度で動く角度
 
-// Motor Control
+//ピン番号
+
+const int PHASE_A = 5; // Encoder phase Aロータリーエンコーダ
+const int PHASE_B = 4; // Encoder phase B
 const int AIN1 = 9;
 const int AIN2 = 10;
 const int PWMA = 11;
 const int BIN1 = 8;
 const int BIN2 = 7;
 const int PWMB =6;
+#define TRIG2 1
+#define ECHO2 3
+#define TRIG1 0
+#define ECHO1 13
+const int therm = A0;//温度センサ
+const int light1 = A1; // 光センサ１
+const int light2 = A2; // 光センサ２
+const int light3 = A3;// 光センサ３
+const int light4 = A4;// 光センサ4
+
+
+// Motor Control
+
 int tirer=14;//タイヤの半径
-int lshaf=80;//シャフトの長さ
+int lshaf=90;//シャフトの長さ
 const int cpr = 24; //count per rotation
-float Kp1 = 1.5;//目的距離による比例ゲイン
+float Kp1 = 2.5;//目的距離による比例ゲイン
+float Kp1A = 0.1;
+float Kp1B = 0.1;
 float Kp2 =10;//差分による比例ゲイン
-float Kp3 =100;// 目標角度による比例ゲイン
-int constant = 180 ; //モータが動く最低限の出力
-int Max = 255; //モータに与える出力の上限
+float Kp3 =10;// 目標角度による比例ゲイン
+int constant = 140 ; //モータが動く最低限の出力
+int Max = 230; //モータに与える出力の上限
+int maxd =60;//差分項の上限
 int Max2 = 200; //曲がるときのモータに与える出力の上限
 int A,B;//回転数の加減
 
 
-//サーボモータ
-#include <Servo.h>
-Servo servo1;
-Servo servo2;
-int dir=1;
 
 //位置決め
 int n;
 
 //光センサ
-const int light1 = A1; // 光センサ１
-const int light2 = A2; // 光センサ２
-const int light3 = A3;// 光センサ３
-const int light4 = A4;// 光センサ4
-int black = 1; //黒色の時のセンサの値（精度のいい方）////////////////////////////////////////////////////////////////////////////
-int black34 = 1; //黒色の時のセンサの値（精度の悪い方）
+
+int black = 1000; //黒色の時のセンサの値（精度のいい方）////////////////////////////////////////////////////////////////////////////
+int black34 = 1000; //黒色の時のセンサの値（精度の悪い方）
 
 //超音波センサ
 #include "SR04.h"
-#define TRIG1 12
-#define ECHO1 13
 SR04 sr041 = SR04(ECHO1,TRIG1);
-int distance1 = 100;//ヒーターとの距離（mm)
-#define TRIG2 2
-#define ECHO2 3
+int distance1 = 50;//ヒーターとの距離（mm)
+
 SR04 sr042 = SR04(ECHO2,TRIG2);
 
 //温度センサ
-const int therm = A0;
+
 int T;//測った温度から得られる値
 
 void setup() {
   Serial.begin(115200);
-  Serial.print("setup");
+  Serial.println("setup");
 // Motor Driver
   pinMode(AIN1, OUTPUT);
   pinMode(AIN2, OUTPUT);
@@ -76,11 +86,17 @@ void setup() {
   digitalWrite(BIN2, HIGH);
   analogWrite(PWMA, 0);
   analogWrite(PWMB, 0);
+  pinMode(TRIG1,OUTPUT);
+  pinMode(ECHO1,INPUT);
+  pinMode(TRIG2,OUTPUT);
+  pinMode(ECHO2,INPUT);
+  pinMode(PHASE_A,INPUT);
+  pinMode(PHASE_B,INPUT);
+  servo1.attach(2);
+servo2.attach(12);
+  servo1.write(90);
+  servo2.write(90);
 
-  servo1.attach(0);
-  servo2.attach(1);
-  servo1.write(40);
-  servo2.write(40);
   
   delay(2000);
 }
@@ -107,188 +123,57 @@ void setup() {
 //アームをおろす　void downarm(int angleref)
 //アームをあげる　void liftarm(int angleref)
 //温度を測る void temperature()
-
+int angle=0;
 void loop() {
-  //1
   openarm();
-  downarm(170);
-  gostraightsr2(50);
-  //2
+  delay(2000);
+  downarm(0);
+  delay(2000);
+  gostraight(600);
+  delay(2000);
   closearm();
-  liftarm(30);
-  gostraight(300);
-  vert(130);
-  gostraightlight(50);
-  //3
-  turnrightlight(100);
-  //4
-  gostraightsr1();
-  //5
-  turnleft(45);
-  //6
-  backstraight(50);
-  downarm(150);
-  temperature();
-  
-  //Tによってif
-
-  if(T<40){
-    //7
-    openarm();
-    liftarm(30);
-    turnleft(180);
-    turnleftsr2(45, 100);
-    //8
-    gostraightsr2(100);
-    downarm(170);
-    closearm();
-    liftarm(90);
-    turnleft(230);
-    //9
-    backstraight(200);
-    vert(150);
-    gostraightlight(50);
-    //10
-    downarm(170);
-    openarm();
-    liftarm(30);
-    //11
-    turnrightlight(90);
-    //12
-    backstraightsr1();
-    
-    
-  }else{
-    //13
-    liftarm(90);
-    turnleft(45);
-    
-    //14
-    backstraight(200);
-    vert(200);
-
-    //15
-    downarm(170);
-    openarm();
-    liftarm(30);
-    turnleft(180);
-    turnleftsr2(200,80);
-    //16
-    gostraightsr2(100);
-    //17
-    downarm(170);
-    closearm();
-    liftarm(90);
-    turnleft(100);
-    //18
-    backstraight(200);
-    //19
-    downarm(150);
-    openarm();
-    liftarm(30);
-    //20
-    backstraight(100);
-    //21
-    turnleft(45);
-    
-    //22
-    vert(200);
-    gostraightlight(50);
-    //23
-    turnrightlight(90);
-    //24
-    backstraightsr1();
-  }
-  //25
-  turnrightsr2(80,200);
-  //26
-  downarm(170);
-  closearm();
-  liftarm(90);
+  delay(2000);
+  liftarm(160);
+  delay(2000);
+  turnright(40);
+  delay(2000);
+  gostraight(20);
+  delay(2000);
+  downarm(0);
+  delay(2000);
+  openarm();
+  delay(2000);
+  //一つ目クリア
+  liftarm(160);
+  delay(2000);
+  backstraight(100);
+  delay(2000);
+  turnleft(190);
+  delay(2000);
+  openarm();
+  delay(2000);
+  downarm(0);
+  delay(2000);
   gostraight(100);
-  //27
-  turnleftsr2(100,200);
-  //28
-  downarm(150);
-  temperature();
+  delay(2000);
+  closearm();
+  delay(2000);
+  liftarm(160);
+  delay(2000);
+  turnright(90);
+  delay(2000);
+  gostraight(200);
+  delay(2000);
+  downarm(0);
+  delay(2000);
+  openarm();
+  delay(2000);
+  backstraight(400);
+  delay(2000);
+  turnright(30);
+  delay(2000);
   
-  if(T<40){
-    //29
-    openarm();
-    liftarm(30);
-    backstraight(50);
-    //30
-    turnright(20);
-    //31
-    vert(100);
-    gostraightlight(50);
-    //32
-    turnrightlight(90);
-    //33
-    backstraightsr1();
-    //34
-    turnrightsr2(70,300);
-    //35
-    gostraightsr2(150);
-    //36
-    turnrightsr2(20,200);
-    gostraightsr2(100);
-    downarm(170);
-    closearm();
-    liftarm(90);
-    //37
-    turnleft(150);
-    //38
-    gostraight(100);
-    //39
-    downarm(170);
-    openarm();
-    liftarm(30);
-  }else{
-    //40
-    backstraight(100);
-    //41
-    turnright(20);
-    //42
-    vert(100);
-    gostraightlight(50);
-    //43
-    downarm(170);
-    openarm();
-    liftarm(30);
-    turnrightlight(90);
-    //44
-    backstraightsr1();
-    //45
-    turnrightsr2(70,300);
-    //46
-    gostraightsr2(100);
-    //47
-    turnrightsr2(20,200);
-    gostraightsr2(100);
-    downarm(170);
-    closearm();
-    liftarm(90);
-    //48
-    turnleft(150);
-    //49
-    vert(100);
-    //50
-    turnleft(90);
-    //51
-    gostraightsr2(150);
-    backstraightsr2(150);
-    //52
-    turnright(30);
-    //50
-    downarm(150);
-    openarm();
-    liftarm(30);
-  }
-  break;
 }
-
-
 
 
 //直進
@@ -322,16 +207,16 @@ void gostraight(int dref){
 
 /* pulse & direction count */
       if (edgeA==1){
-         countA = countA+A;
+         countA++;
       }
       if(edgeA==-1){
-         countA = countA+A;
+         countA++;
       }
       if(edgeB==1){
-         countB = countB+B;
+         countB++;
       }
       if(edgeB==-1){
-         countB = countB+B;
+         countB++;
       }
       Serial.print("countA=");
       Serial.println(countA);
@@ -340,51 +225,41 @@ void gostraight(int dref){
 
       dA=tirer*(360*countA/cpr)*(PI/180);
       dB=tirer*(360*countB/cpr)*(PI/180);
-      if(dA>=dref){
-        uA = min(abs(dA-dref)*Kp1,constant)+Kp2*(dB-dA);
-      }else{
-        uA = -min(abs(dA-dref)*Kp1,constant)+Kp2*(dB-dA);
-      }
-      if(dB>=dref){
-        uB = min(abs(dB-dref)*Kp1,constant)+Kp2*(dA-dB);
-      }else{
-        uB = -min(abs(dB-dref)*Kp1,constant)+Kp2*(dA-dB);
-      }
+      
+        uA = min((dref-dA)*Kp1A,maxd)+Kp2*(dB-dA);
+      
+        uB = min((dref-dB)*Kp1B,maxd)+Kp2*(dA-dB);
       
       if ((uA>0)&&(uB>0)) {
          digitalWrite(AIN1, LOW);
          digitalWrite(AIN2, HIGH);
          digitalWrite(BIN1, LOW);
          digitalWrite(BIN2, HIGH);
-         A=1;
-         B=1;
       } 
       if ((uA>0)&&(uB<=0)) {
          digitalWrite(AIN1, LOW);
          digitalWrite(AIN2, HIGH);
-         digitalWrite(BIN1, HIGH);
-         digitalWrite(BIN2, LOW);
-         A=1;
-         B=-1;
-      } 
-      if ((uA<=0)&&(uB>0)) {
-         digitalWrite(AIN1, HIGH);
-         digitalWrite(AIN2, LOW);
          digitalWrite(BIN1, LOW);
          digitalWrite(BIN2, HIGH);
-         A=-1;
-         B=1;
+         uB=0;
+      } 
+      if ((uA<=0)&&(uB>0)) {
+         digitalWrite(AIN1, LOW);
+         digitalWrite(AIN2, HIGH);
+         digitalWrite(BIN1, LOW);
+         digitalWrite(BIN2, HIGH);
+         uA=0;
       } 
       if((uA<=0)&&(uB<=0)) {
-         digitalWrite(AIN1, HIGH);
-         digitalWrite(AIN2, LOW);
-         digitalWrite(BIN1, HIGH);
-         digitalWrite(BIN2, LOW);
-         A=-1;
-         B=-1;
+         digitalWrite(AIN1, LOW);
+         digitalWrite(AIN2, HIGH);
+         digitalWrite(BIN1, LOW);
+         digitalWrite(BIN2, HIGH);
+         uA=0;
+         uB=0;
       }
-      analogWrite(PWMA, min(abs(uA), Max));
-      analogWrite(PWMB, min(abs(uB), Max));
+      analogWrite(PWMA, min(uA+constant, Max));
+      analogWrite(PWMB, min(uB+constant, Max));
  }
 }
 
@@ -422,16 +297,16 @@ void backstraight(int dref){
 
 /* pulse & direction count */
      if (edgeA==1){
-         countA = countA+A;
+         countA++;
       }
       if(edgeA==-1){
-         countA = countA+A;
+         countA++;
       }
       if(edgeB==1){
-         countB = countB+B;
+         countB++;
       }
       if(edgeB==-1){
-         countB = countB+B;
+         countB++;
       }
       Serial.print("countA=");
       Serial.println(countA);
@@ -441,51 +316,41 @@ void backstraight(int dref){
       dA=tirer*(360*countA/cpr)*(PI/180);
       dB=tirer*(360*countB/cpr)*(PI/180);
 
-      if(dA>=dref){
-        uA = min(abs(dA-dref)*Kp1,constant)+Kp2*(dB-dA);
-      }else{
-        uA = -min(abs(dA-dref)*Kp1,constant)+Kp2*(dB-dA);
-      }
-      if(dB>=dref){
-        uB = min(abs(dB-dref)*Kp1,constant)+Kp2*(dA-dB);
-      }else{
-        uB = -min(abs(dB-dref)*Kp1,constant)+Kp2*(dA-dB);
-      }
+      uA = min((dref-dA)*Kp1A,maxd)+Kp2*(dB-dA);
+      
+      uB = min((dref-dB)*Kp1B,maxd)+Kp2*(dA-dB);
+        
      
       if ((uA>0)&&(uB>0)) {
          digitalWrite(AIN1, HIGH);
          digitalWrite(AIN2, LOW);
          digitalWrite(BIN1, HIGH);
          digitalWrite(BIN2, LOW);
-         A=1;
-         B=1;
       } 
       if ((uA>0)&&(uB<=0)) {
          digitalWrite(AIN1, HIGH);
          digitalWrite(AIN2, LOW);
-         digitalWrite(BIN1, LOW);
-         digitalWrite(BIN2, HIGH);
-         A=1;
-         B=-1;
-      } 
-      if ((uA<=0)&&(uB>0)) {
-         digitalWrite(AIN1, LOW);
-         digitalWrite(AIN2, HIGH);
          digitalWrite(BIN1, HIGH);
          digitalWrite(BIN2, LOW);
-         A=-1;
-         B=1;
+         uB=0;
+      } 
+      if ((uA<=0)&&(uB>0)) {
+         digitalWrite(AIN1, HIGH);
+         digitalWrite(AIN2, LOW);
+         digitalWrite(BIN1, HIGH);
+         digitalWrite(BIN2, LOW);
+         uA=0;
       } 
       if((uA<=0)&&(uB<=0)) {
-         digitalWrite(AIN1, LOW);
-         digitalWrite(AIN2, HIGH);
-         digitalWrite(BIN1, LOW);
-         digitalWrite(BIN2, HIGH);
-         A=-1;
-         B=-1;
+         digitalWrite(AIN1, HIGH);
+         digitalWrite(AIN2, LOW);
+         digitalWrite(BIN1, HIGH);
+         digitalWrite(BIN2, LOW);
+         uA=0;
+         uB=0;
       }
-      analogWrite(PWMA, min(abs(uA), Max));
-      analogWrite(PWMB, min(abs(uB), Max));
+      analogWrite(PWMA, min(uA+constant, Max));
+      analogWrite(PWMB, min(uB+constant, Max));
  }
 }
 
@@ -506,10 +371,10 @@ void turnleft(int deg){
          stateB = 0; edgeB = -1; // falling edge
       }
       if(edgeB==1){
-         countB = countB + B;
+         countB++;
       }
       if(edgeB==-1){
-         countB = countB + B;
+         countB++;
       }
       Serial.print("countB=");
       Serial.println(countB);
@@ -520,16 +385,16 @@ void turnleft(int deg){
          digitalWrite(AIN2, HIGH);
          digitalWrite(BIN1, LOW);
          digitalWrite(BIN2, HIGH);
-         B = 1;
+         
       } else {
-         digitalWrite(AIN1, HIGH);
-         digitalWrite(AIN2, LOW);
-         digitalWrite(BIN1, HIGH);
-         digitalWrite(BIN2, LOW);
-         B = -1;
+         digitalWrite(AIN1, LOW);
+         digitalWrite(AIN2, HIGH);
+         digitalWrite(BIN1, LOW);
+         digitalWrite(BIN2, HIGH);
+         u=0;
       }
       analogWrite(PWMA, 0 );
-      analogWrite(PWMB, min(abs(u)+10, Max2));
+      analogWrite(PWMB, min(u+constant, Max2));
    }
 }
 
@@ -564,12 +429,13 @@ void turnright(int deg){
         digitalWrite(BIN1, LOW);
         digitalWrite(BIN2, HIGH);
      } else {
-        digitalWrite(AIN1, HIGH);
-        digitalWrite(AIN2, LOW);
-        digitalWrite(BIN1, HIGH);
-        digitalWrite(BIN2, LOW);
+        digitalWrite(AIN1, LOW);
+        digitalWrite(AIN2, HIGH);
+        digitalWrite(BIN1, LOW);
+        digitalWrite(BIN2, HIGH);
+        u=0;
      }
-        analogWrite(PWMA, min(abs(u)+10, Max2));
+        analogWrite(PWMA, min(u+constant, Max2));
         analogWrite(PWMB, 0 );
      }
 }
@@ -582,9 +448,8 @@ void turnleftlight(int deg){//degは大まかな角度の値
    int stateB=0;
    int countB=0;
    Serial.println("turnrightlight");
-   while(analogRead(light1)<black&&analogRead(light2)<black){
+   while(analogRead(light1)<black){
       analogRead(light1);
-      analogRead(light2);
       valB = digitalRead(PHASE_B);
       edgeB=0;
       if ((valB ==1) && (stateB == 0)) {
@@ -616,7 +481,7 @@ void turnleftlight(int deg){//degは大まかな角度の値
          digitalWrite(BIN2, HIGH);
       }
       analogWrite(PWMA, 0);
-      analogWrite(PWMB, min(abs(u)+10, Max2));
+      analogWrite(PWMB, min(u+constant, Max2));
    }
 }
 
@@ -627,8 +492,7 @@ void turnrightlight(int deg){//degは大まかな角度
      int stateA=0;
      int countA=0;
      Serial.println("turnleftlight");
-     while(analogRead(light1)<black&&analogRead(light2)<black){ 
-        analogRead(light1);
+     while(analogRead(light2)<black){ 
         analogRead(light2);
         valA = digitalRead(PHASE_A);
         edgeA=0;
@@ -654,12 +518,12 @@ void turnrightlight(int deg){//degは大まかな角度
         digitalWrite(BIN2, HIGH);
      } else {
         u=0;
-        digitalWrite(AIN1, HIGH);
-        digitalWrite(AIN2, LOW);
-        digitalWrite(BIN1, HIGH);
-        digitalWrite(BIN2, LOW);
+        digitalWrite(AIN1, LOW);
+        digitalWrite(AIN2, HIGH);
+        digitalWrite(BIN1, LOW);
+        digitalWrite(BIN2, HIGH);
      }
-        analogWrite(PWMA, min(abs(u)+10, Max2));
+        analogWrite(PWMA, min(u+constant, Max2));
         analogWrite(PWMB,0);
      }
 }
@@ -676,28 +540,28 @@ void gostraightsr1(){
       analogRead(light2);
 
       if(analogRead(light1)>black&&analogRead(light2)>black){//両方出てない
-        uA = 100;
-        uB = 100; 
+        uA = constant;
+        uB = constant+20; 
         lef=0;
         ri=0;
       }
        if(analogRead(light1)<=black&&analogRead(light2)>black){//左だけ出ている
-        uA =100 ;
-        uB =30 ; 
+        uA =constant+40 ;
+        uB =constant ; 
         lef++;
       }
        if(analogRead(light1)>black&&analogRead(light2)<=black){//右だけ出ている
-        uA =30 ;
-        uB =100 ; 
+        uA =constant;
+        uB =constant+40 ; 
         ri++;
       }
        if(analogRead(light1)<=black&&analogRead(light2)<=black&&lef>ri){//左右どちらとも黒線の左側に出ている
-        uA =120 ;
-        uB =30 ; 
+        uA =constant+50;
+        uB =constant ; 
        }
       if(analogRead(light1)<=black&&analogRead(light2)<=black&&lef>ri){//左右どちらとも黒線の右側に出ている
-        uA =30 ;
-        uB =120 ; 
+        uA =constant ;
+        uB =constant+50 ; 
        }
       
       digitalWrite(AIN1, LOW);
@@ -705,8 +569,8 @@ void gostraightsr1(){
       digitalWrite(BIN1, LOW);
       digitalWrite(BIN2, HIGH);
     
-      analogWrite(PWMA, min(abs(uA)+10, 150));
-      analogWrite(PWMB, min(abs(uB)+10, 150));
+      analogWrite(PWMA, min(uA, Max));
+      analogWrite(PWMB, min(uB, Max));
  }
 }
 
@@ -722,29 +586,29 @@ void backstraightsr1(){
       analogRead(light2);
 
       if(light1>black&&light2>black){//両方出てない
-        uA = 100;
-        uB = 100; 
+        uA = constant;
+        uB = constant; 
         lef=0;
         ri=0;
       }
        if(light1<=black&&light2>black){//左だけ出ている
-        uA =100 ;
-        uB =30 ; 
+        uA =constant ;
+        uB =constant-70 ; 
         lef++;
       }
       
        if(light1>black&&light2<=black){//右だけ出ている
-        uA =30 ;
-        uB =100 ; 
+        uA =constant-70 ;
+        uB =constant ; 
         ri++;
       }
        if(light1<=black&&light2<=black&&lef>ri){//左右どちらとも黒線の左側に出ている
-        uA =120 ;
-        uB =30 ; 
+        uA =constant+20 ;
+        uB =constant-70 ; 
        }
       if(light1<=black&&light2<=black&&lef>ri){//左右どちらとも黒線の右側に出ている
-        uA =30 ;
-        uB =120 ; 
+        uA =constant-70 ;
+        uB =constant+20 ; 
        }
       
       
@@ -753,8 +617,8 @@ void backstraightsr1(){
       digitalWrite(BIN1, HIGH);
       digitalWrite(BIN2, LOW);
     
-      analogWrite(PWMA, min(abs(uA)+10, 150));
-      analogWrite(PWMB, min(abs(uB)+10, 150));
+      analogWrite(PWMA, min(uA, 150));
+      analogWrite(PWMB, min(uB, 150));
  }
 }
 
@@ -792,10 +656,13 @@ void turnleftsr2(int deg,int d){// 大まかな角度と止まる時の距離
          digitalWrite(BIN1, LOW);
          digitalWrite(BIN2, HIGH);
       } else {
-         u=0;
+        digitalWrite(AIN1, HIGH);
+        digitalWrite(AIN2, LOW);
+        digitalWrite(BIN1, HIGH);
+        digitalWrite(BIN2, LOW); 
       }
       analogWrite(PWMA, 0 );
-      analogWrite(PWMB,min(abs(u)+10, Max2));
+      analogWrite(PWMB,min(abs(u)+constant, Max2));
    }
 }
 
@@ -833,13 +700,12 @@ void turnrightsr2(int deg,int d){//degは大まかな角度, dは物体との距
         digitalWrite(BIN1, LOW);
         digitalWrite(BIN2, HIGH);
      } else {
-        u=0;
         digitalWrite(AIN1, HIGH);
         digitalWrite(AIN2, LOW);
         digitalWrite(BIN1, HIGH);
         digitalWrite(BIN2, LOW);
      }
-        analogWrite(PWMA, min(abs(u)+10, Max));
+        analogWrite(PWMA, min(abs(u)+constant, Max));
         analogWrite(PWMB,0);
      }
 }
@@ -853,8 +719,6 @@ void gostraightsr2(int d){//dは物体をつかむときの物体との距離
    int countA=0;
    int countB=0;
    int dA,dB;
-   float Kp1=0.3;
-   float Kp2=10;
    long a;
    int uA,uB;
    Serial.println("gostraightsr");
@@ -879,16 +743,16 @@ void gostraightsr2(int d){//dは物体をつかむときの物体との距離
 
 /* pulse & direction count */
       if (edgeA==1){
-         countA = countA + A;
+         countA++;
       }
       if(edgeA==-1){
-         countA = countA + A;
+         countA++;
       }
       if(edgeB==1){
-         countB  = countB +B;
+         countB++;
       }
       if(edgeB==-1){
-         countB = countB + B;
+         countB++;
       }
       Serial.print("countA=");
       Serial.println(countA);
@@ -898,13 +762,9 @@ void gostraightsr2(int d){//dは物体をつかむときの物体との距離
       dA=tirer*(360*countA/cpr)*(PI/180);
       dB=tirer*(360*countB/cpr)*(PI/180);
 
-      if(a>=d){
-        uA = min(abs(a-d)*Kp1,constant)+Kp2*(dB-dA);
-        uB = min(abs(a-d)*Kp1,constant)+Kp2*(dA-dB);
-      }else{
-        uA = -min(abs(a-d)*Kp1,constant)+Kp2*(dB-dA);
-        uB = -min(abs(a-d)*Kp1,constant)+Kp2*(dA-dB);
-      }
+      
+        uA = abs(a-d)*Kp1+Kp2*(dB-dA);
+        uB = abs(a-d)*Kp1+Kp2*(dA-dB);
       
    
       if ((uA>0)&&(uB>0)) {
@@ -912,35 +772,32 @@ void gostraightsr2(int d){//dは物体をつかむときの物体との距離
          digitalWrite(AIN2, HIGH);
          digitalWrite(BIN1, LOW);
          digitalWrite(BIN2, HIGH);
-         A=1;
-         B=1;
+       
       } 
       if ((uA>0)&&(uB<=0)) {
          digitalWrite(AIN1, LOW);
          digitalWrite(AIN2, HIGH);
-         digitalWrite(BIN1, HIGH);
-         digitalWrite(BIN2, LOW);
-         A=1;
-         B=-1;
-      } 
-      if ((uA<=0)&&(uB>0)) {
-         digitalWrite(AIN1, HIGH);
-         digitalWrite(AIN2, LOW);
          digitalWrite(BIN1, LOW);
          digitalWrite(BIN2, HIGH);
-         A=-1;
-         B=1;
+         uB=0;
+      } 
+      if ((uA<=0)&&(uB>0)) {
+         digitalWrite(AIN1, LOW);
+         digitalWrite(AIN2, HIGH);
+         digitalWrite(BIN1, LOW);
+         digitalWrite(BIN2, HIGH);
+         uA=0;
       } 
       if((uA<=0)&&(uB<=0)) {
-         digitalWrite(AIN1, HIGH);
-         digitalWrite(AIN2, LOW);
-         digitalWrite(BIN1, HIGH);
-         digitalWrite(BIN2, LOW);
-         A=-1;
-         B=-1;
+         digitalWrite(AIN1, LOW);
+         digitalWrite(AIN2, HIGH);
+         digitalWrite(BIN1, LOW);
+         digitalWrite(BIN2, HIGH);
+         uA=0;
+         uB=0;
       }
-      analogWrite(PWMA, min(abs(uA), Max));
-      analogWrite(PWMB, min(abs(uB), Max));
+      analogWrite(PWMA, min(uA+constant, Max));
+      analogWrite(PWMB, min(uB+constant, Max));
  }
 }
 
@@ -953,8 +810,6 @@ void backstraightsr2(int d){//dは物体をつかむときの物体との距離
    int countA=0;
    int countB=0;
    int dA,dB;
-   float Kp1=0.3;
-   float Kp2=10;
    long a;
    int uA,uB;
    Serial.println("gostraightsr");
@@ -979,16 +834,16 @@ void backstraightsr2(int d){//dは物体をつかむときの物体との距離
 
 /* pulse & direction count */
       if (edgeA==1){
-         countA = countA + A;
+         countA++;
       }
       if(edgeA==-1){
-         countA = countA + A;
+         countA++;
       }
       if(edgeB==1){
-         countB  = countB +B;
+         countB++;
       }
       if(edgeB==-1){
-         countB = countB + B;
+         countB++;
       }
       Serial.print("countA=");
       Serial.println(countA);
@@ -998,13 +853,11 @@ void backstraightsr2(int d){//dは物体をつかむときの物体との距離
       dA=tirer*(360*countA/cpr)*(PI/180);
       dB=tirer*(360*countB/cpr)*(PI/180);
 
-      if(a<=d){
-        uA = min(abs(a-d)*Kp1,constant)+Kp2*(dB-dA);
-        uB = min(abs(a-d)*Kp1,constant)+Kp2*(dA-dB);
-      }else{
-        uA = -min(abs(a-d)*Kp1,constant)+Kp2*(dB-dA);
-        uB = -min(abs(a-d)*Kp1,constant)+Kp2*(dA-dB);
-      }
+      
+        uA = abs(a-d)*Kp1+Kp2*(dB-dA);
+      
+        uB = abs(a-d)*Kp1+Kp2*(dA-dB);
+      
       
    
       if ((uA>0)&&(uB>0)) {
@@ -1012,35 +865,31 @@ void backstraightsr2(int d){//dは物体をつかむときの物体との距離
          digitalWrite(AIN2, LOW);
          digitalWrite(BIN1, HIGH);
          digitalWrite(BIN2, LOW);
-         A=1;
-         B=1;
       } 
       if ((uA>0)&&(uB<=0)) {
          digitalWrite(AIN1, HIGH);
          digitalWrite(AIN2, LOW);
-         digitalWrite(BIN1, LOW);
-         digitalWrite(BIN2, HIGH);
-         A=1;
-         B=-1;
-      } 
-      if ((uA<=0)&&(uB>0)) {
-         digitalWrite(AIN1, LOW);
-         digitalWrite(AIN2, HIGH);
          digitalWrite(BIN1, HIGH);
          digitalWrite(BIN2, LOW);
-         A=-1;
-         B=1;
+         uB=0;
+      } 
+      if ((uA<=0)&&(uB>0)) {
+         digitalWrite(AIN1, HIGH);
+         digitalWrite(AIN2, LOW);
+         digitalWrite(BIN1, HIGH);
+         digitalWrite(BIN2, LOW);
+         uA=0;
       } 
       if((uA<=0)&&(uB<=0)) {
          digitalWrite(AIN1, LOW);
          digitalWrite(AIN2, HIGH);
          digitalWrite(BIN1, LOW);
          digitalWrite(BIN2, HIGH);
-         A=-1;
-         B=-1;
+         uA=0;
+         uB=0;
       }
-      analogWrite(PWMA, min(abs(uA), Max));
-      analogWrite(PWMB, min(abs(uB), Max));
+      analogWrite(PWMA, min(uA+constant, Max));
+      analogWrite(PWMB, min(uB+constant, Max));
  }
 }
 
@@ -1077,10 +926,10 @@ void backturnleft(int deg){
         digitalWrite(BIN1, HIGH);
         digitalWrite(BIN2, LOW);
      } else {
-        digitalWrite(AIN1, LOW);
-        digitalWrite(AIN2, HIGH);
-        digitalWrite(BIN1, LOW);
-        digitalWrite(BIN2, HIGH);
+        digitalWrite(AIN1, HIGH);
+        digitalWrite(AIN2, LOW);
+        digitalWrite(BIN1, HIGH);
+        digitalWrite(BIN2, LOW);
      }
         analogWrite(PWMA, min(abs(u)+10, Max2));
         analogWrite(PWMB, 0 );
@@ -1122,16 +971,16 @@ void gostraightlight(int dref){//dは大まかな距離
 
 /* pulse & direction count */
       if (edgeA==1){
-         countA = countA + A;
+         countA++;
       }
       if(edgeA==-1){
-         countA = countA + A;
+         countA++;
       }
       if(edgeB==1){
-         countB  = countB +B;
+         countB++;
       }
       if(edgeB==-1){
-         countB = countB + B;
+         countB++;
       }
       Serial.print("countA=");
       Serial.println(countA);
@@ -1141,51 +990,39 @@ void gostraightlight(int dref){//dは大まかな距離
       dA=tirer*(360*countA/cpr)*(PI/180);
       dB=tirer*(360*countB/cpr)*(PI/180);
       
-      if(dA>=dref){
-        uA = min(abs(dA-dref)*Kp1,constant)+Kp2*(dB-dA);
-      }else{
-        uA = -min(abs(dA-dref)*Kp1,constant)+Kp2*(dB-dA);
-      }
-      if(dB>=dref){
-        uB = min(abs(dB-dref)*Kp1,constant)+Kp2*(dA-dB);
-      }else{
-        uB = -min(abs(dB-dref)*Kp1,constant)+Kp2*(dA-dB);
-      }
+        uA = (dref-dA)*Kp1+Kp2*(dB-dA);
+        uB = (dref-dB)*Kp1+Kp2*(dA-dB);
       
       if ((uA>0)&&(uB>0)) {
          digitalWrite(AIN1, LOW);
          digitalWrite(AIN2, HIGH);
          digitalWrite(BIN1, LOW);
          digitalWrite(BIN2, HIGH);
-         A=1;
-         B=1;
       } 
       if ((uA>0)&&(uB<=0)) {
          digitalWrite(AIN1, LOW);
          digitalWrite(AIN2, HIGH);
          digitalWrite(BIN1, HIGH);
          digitalWrite(BIN2, LOW);
-         A=1;
-         B=-1;
+         uB=0;
       } 
       if ((uA<=0)&&(uB>0)) {
          digitalWrite(AIN1, HIGH);
          digitalWrite(AIN2, LOW);
          digitalWrite(BIN1, LOW);
          digitalWrite(BIN2, HIGH);
-         A=-1;
-         B=1;
+        uA=0;
       } 
       if((uA<=0)&&(uB<=0)) {
          digitalWrite(AIN1, HIGH);
          digitalWrite(AIN2, LOW);
          digitalWrite(BIN1, HIGH);
          digitalWrite(BIN2, LOW);
-         A=-1;
-         B=-1;
+         uA=0;
+         uB=0;
       }
-      analogWrite(PWMA, min(abs(uA), Max));
-      analogWrite(PWMB, min(abs(uB), Max));
+      analogWrite(PWMA, min(uA+constant, Max));
+      analogWrite(PWMB, min(uB+constant, Max));
  }
 }
 
@@ -1227,16 +1064,16 @@ void vert(int dref){ //dは大まかな距離
 
 /* pulse & direction count */
      if (edgeA==1){
-         countA = countA + A;
+         countA++;
       }
       if(edgeA==-1){
-         countA = countA + A;
+         countA++;
       }
       if(edgeB==1){
-         countB  = countB +B;
+         countB++;
       }
       if(edgeB==-1){
-         countB = countB + B;
+         countB++;
       }
       Serial.print("countA=");
       Serial.println(countA);
@@ -1246,53 +1083,43 @@ void vert(int dref){ //dは大まかな距離
       dA=tirer*(360*countA/cpr)*(PI/180);
       dB=tirer*(360*countB/cpr)*(PI/180);
 
-      if(dA>=dref){
-            uA = min(abs(dA-dref)*Kp1,constant)+Kp2*(dB-dA);
-      }else{
-            uA = -min(abs(dA-dref)*Kp1,constant)+Kp2*(dB-dA);
-      }
-      if(dB>=dref){
-            uB = min(abs(dB-dref)*Kp1,constant)+Kp2*(dA-dB);
-      }else{
-            uB = -min(abs(dB-dref)*Kp1,constant)+Kp2*(dA-dB);
-      }
+     
+            uA = (dref-dA)*Kp1+Kp2*(dB-dA);
+            uB = (dref-dB)*Kp1+Kp2*(dA-dB);
       
       if ((uA>0)&&(uB>0)) {
          digitalWrite(AIN1, LOW);
          digitalWrite(AIN2, HIGH);
          digitalWrite(BIN1, LOW);
          digitalWrite(BIN2, HIGH);
-         A=1;
-         B=1;
       } 
       if ((uA>0)&&(uB<=0)) {
          digitalWrite(AIN1, LOW);
          digitalWrite(AIN2, HIGH);
-         digitalWrite(BIN1, HIGH);
-         digitalWrite(BIN2, LOW);
-         A=1;
-         B=-1;
-      } 
-      if ((uA<=0)&&(uB>0)) {
-         digitalWrite(AIN1, HIGH);
-         digitalWrite(AIN2, LOW);
          digitalWrite(BIN1, LOW);
          digitalWrite(BIN2, HIGH);
-         A=-1;
-         B=1;
+         uB=0;
+      } 
+      if ((uA<=0)&&(uB>0)) {
+         digitalWrite(AIN1, LOW);
+         digitalWrite(AIN2, HIGH);
+         digitalWrite(BIN1, LOW);
+         digitalWrite(BIN2, HIGH);
+         uA=0;
       } 
       if((uA<=0)&&(uB<=0)) {
-         digitalWrite(AIN1, HIGH);
-         digitalWrite(AIN2, LOW);
-         digitalWrite(BIN1, HIGH);
-         digitalWrite(BIN2, LOW);
-         A=-1;
-         B=-1;
+         digitalWrite(AIN1, LOW);
+         digitalWrite(AIN2, HIGH);
+         digitalWrite(BIN1, LOW);
+         digitalWrite(BIN2, HIGH);
+         uA=0;
+         uB=0;
       }
-      analogWrite(PWMA, min(abs(uA)+10, 150));
-      analogWrite(PWMB, min(abs(uB)+10, 150));     
+      analogWrite(PWMA, min(uA+constant, Max));
+      analogWrite(PWMB, min(uB+constant, Max));     
   }
- 
+
+  
   countA = 0 ;
   countB = 0 ;
   
@@ -1325,16 +1152,16 @@ if(analogRead(light1)>=black&&analogRead(light4)<black34&&s==0){
 
 /* pulse & direction count */
      if (edgeA==1){
-         countA = countA + A;
+         countA++;
       }
       if(edgeA==-1){
-         countA = countA + A;
+         countA++;
       }
       if(edgeB==1){
-         countB  = countB +B;
+         countB++;
       }
       if(edgeB==-1){
-         countB = countB + B;
+         countB++;
       }
       Serial.print("countA=");
       Serial.println(countA);
@@ -1347,8 +1174,8 @@ if(analogRead(light1)>=black&&analogRead(light4)<black34&&s==0){
       dA1=dA;
       dB1=dB;//距離を保存しておく
 
-        int uA = 150+Kp2*(dB-dA);
-        int uB = 150+Kp2*(dA-dB);
+        int uA = 50+Kp2*(dB-dA);
+        int uB = 50+Kp2*(dA-dB);
      
       
       if ((uA>0)&&(uB>0)) {
@@ -1356,35 +1183,31 @@ if(analogRead(light1)>=black&&analogRead(light4)<black34&&s==0){
          digitalWrite(AIN2, HIGH);
          digitalWrite(BIN1, LOW);
          digitalWrite(BIN2, HIGH);
-         A=1;
-         B=1;
       } 
       if ((uA>0)&&(uB<=0)) {
          digitalWrite(AIN1, LOW);
          digitalWrite(AIN2, HIGH);
-         digitalWrite(BIN1, HIGH);
-         digitalWrite(BIN2, LOW);
-         A=1;
-         B=-1;
-      } 
-      if ((uA<=0)&&(uB>0)) {
-         digitalWrite(AIN1, HIGH);
-         digitalWrite(AIN2, LOW);
          digitalWrite(BIN1, LOW);
          digitalWrite(BIN2, HIGH);
-         A=-1;
-         B=1;
+         uB=0;
+      } 
+      if ((uA<=0)&&(uB>0)) {
+         digitalWrite(AIN1, LOW);
+         digitalWrite(AIN2, HIGH);
+         digitalWrite(BIN1, LOW);
+         digitalWrite(BIN2, HIGH);
+         uA=0;
       } 
       if((uA<=0)&&(uB<=0)) {
-         digitalWrite(AIN1, HIGH);
-         digitalWrite(AIN2, LOW);
-         digitalWrite(BIN1, HIGH);
-         digitalWrite(BIN2, LOW);
-         A=-1;
-         B=-1;
+         digitalWrite(AIN1, LOW);
+         digitalWrite(AIN2, HIGH);
+         digitalWrite(BIN1, LOW);
+         digitalWrite(BIN2, HIGH);
+         uA=0;
+         uB=0;
       }
-      analogWrite(PWMA, min(abs(uA), Max));
-      analogWrite(PWMB, min(abs(uB), Max));     
+      analogWrite(PWMA, min(uA+constant, Max));
+      analogWrite(PWMB, min(uB+constant, Max));     
  }
  }
  
@@ -1417,16 +1240,16 @@ if(analogRead(light1)<black&&analogRead(light4)>=black34&&s==0){
 
 /* pulse & direction count */
      if (edgeA==1){
-         countA = countA + A;
+         countA++;
       }
       if(edgeA==-1){
-         countA = countA + A;
+         countA++;
       }
       if(edgeB==1){
-         countB  = countB +B;
+         countB++;
       }
       if(edgeB==-1){
-         countB = countB + B;
+         countB++;
       }
       Serial.print("countA=");
       Serial.println(countA);
@@ -1439,43 +1262,39 @@ if(analogRead(light1)<black&&analogRead(light4)>=black34&&s==0){
       dA2=dA;
       dB2=dB;//距離を保存しておく
 
-      int uA = 150+Kp2*(dB-dA);
-      int uB = 150+Kp2*(dA-dB);
+      int uA = 50+Kp2*(dB-dA);
+      int uB = 50+Kp2*(dA-dB);
       
       if ((uA>0)&&(uB>0)) {
          digitalWrite(AIN1, LOW);
          digitalWrite(AIN2, HIGH);
          digitalWrite(BIN1, LOW);
          digitalWrite(BIN2, HIGH);
-         A=1;
-         B=1;
       } 
       if ((uA>0)&&(uB<=0)) {
          digitalWrite(AIN1, LOW);
          digitalWrite(AIN2, HIGH);
-         digitalWrite(BIN1, HIGH);
-         digitalWrite(BIN2, LOW);
-         A=1;
-         B=-1;
-      } 
-      if ((uA<=0)&&(uB>0)) {
-         digitalWrite(AIN1, HIGH);
-         digitalWrite(AIN2, LOW);
          digitalWrite(BIN1, LOW);
          digitalWrite(BIN2, HIGH);
-         A=-1;
-         B=1;
+         uB=0;
+      } 
+      if ((uA<=0)&&(uB>0)) {
+         digitalWrite(AIN1, LOW);
+         digitalWrite(AIN2, HIGH);
+         digitalWrite(BIN1, LOW);
+         digitalWrite(BIN2, HIGH);
+         uA=0;
       } 
       if((uA<=0)&&(uB<=0)) {
-         digitalWrite(AIN1, HIGH);
-         digitalWrite(AIN2, LOW);
-         digitalWrite(BIN1, HIGH);
-         digitalWrite(BIN2, LOW);
-         A=-1;
-         B=-1;
+         digitalWrite(AIN1, LOW);
+         digitalWrite(AIN2, HIGH);
+         digitalWrite(BIN1, LOW);
+         digitalWrite(BIN2, HIGH);
+         uA=0;
+         uB=0;
       }
-      analogWrite(PWMA, min(abs(uA), Max));
-      analogWrite(PWMB, min(abs(uB), Max));     
+      analogWrite(PWMA, min(uA+constant, Max));
+      analogWrite(PWMB, min(uB+constant, Max));     
  }
  }
 
@@ -1514,13 +1333,14 @@ if(analogRead(light1)<black&&analogRead(light4)>=black34&&s==0){
          digitalWrite(BIN1, LOW);
          digitalWrite(BIN2, HIGH);
       } else {
-         digitalWrite(AIN1, HIGH);
-         digitalWrite(AIN2, LOW);
-         digitalWrite(BIN1, HIGH);
-         digitalWrite(BIN2, LOW);
+         digitalWrite(AIN1, LOW);
+         digitalWrite(AIN2, HIGH);
+         digitalWrite(BIN1, LOW);
+         digitalWrite(BIN2, HIGH);
+         u=0;
       }
       analogWrite(PWMA, 0 );
-      analogWrite(PWMB, min(abs(u)+10, Max2));
+      analogWrite(PWMB, min(u+constant, Max2));
    }
  }
  
@@ -1556,12 +1376,12 @@ if(analogRead(light1)<black&&analogRead(light4)>=black34&&s==0){
         digitalWrite(BIN1, LOW);
         digitalWrite(BIN2, HIGH);
      } else {
-        digitalWrite(AIN1, HIGH);
-        digitalWrite(AIN2, LOW);
-        digitalWrite(BIN1, HIGH);
-        digitalWrite(BIN2, LOW);
+        digitalWrite(AIN1, LOW);
+        digitalWrite(AIN2, HIGH);
+        digitalWrite(BIN1, LOW);
+        digitalWrite(BIN2, HIGH);
      }
-        analogWrite(PWMA, min(abs(u)+10, Max2));
+        analogWrite(PWMA, min(u+constant, Max2));
         analogWrite(PWMB, 0 );
      }
   }
@@ -1571,41 +1391,45 @@ if(analogRead(light1)<black&&analogRead(light4)>=black34&&s==0){
 //アームを閉じる
 void closearm(){
   int angle;
-  while(angle<130){
+  while(angle>0){
     servo1.write(angle);
-    angle=angle+dir;
-    delay(5);
+    angle=angle-dir;
+    delay(100);
   }
+  Serial.println("closearm");
 }
 
 //アームを開ける
 void openarm(){
   int angle;
-  while(angle>30){
+  while(angle<90){
     servo1.write(angle);
-    angle=angle-dir;
+    angle=angle+dir;
+    delay(100);
+  }
+  Serial.println("openarm");
+}
+
+//アームを上げる
+void liftarm(int angleref){
+  int angle;
+  while(angleref>angle){
+    servo2.write(angle);
+    angle=angle+dir;
     delay(5);
   }
+  Serial.println("liftarm");
 }
 
 //アームをおろす
 void downarm(int angleref){
   int angle;
-  while(angleref>angle){
-    servo1.write(angle);
-    angle=angle+dir;
-    delay(5);
-  }
-}
-
-//アームをあげる
-void liftarm(int angleref){
-  int angle;
   while(angle>angleref){
-    servo1.write(angle);
+    servo2.write(angle);
     angle=angle-dir;
     delay(5);
   }
+  Serial.println("downarm");
 }
 
 //温度を測る
