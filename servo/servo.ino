@@ -179,81 +179,82 @@ void loop() {
                 }
             }
 
-            case 1: // 白いドリンクの運搬
-                main_move(g_object, g_i, & g_robot_pos, g_destination);
-                pick();
-                if (g_object[TABLE_R].tempreture > 40 && g_object[TABLE_L].tempreture > 40) {
-                    g_object[COUNTER].position.x = g_robot_pos.x;
-                    main_move(g_object, COUNTER, & g_robot_pos, g_destination);
-                    divide();
-                    g_i++;
-                    break;
-                } else if (g_object[TABLE_R].tempreture < 20) {
-                    main_move(g_object, TABLE_R, & g_robot_pos, g_destination);
-                    tableLR[1] = true;
-                    divide();
-                    g_i++;
-                    break;
-                } else if (g_object[TABLE_L].tempreture < 20) {
-                    main_move(g_object, TABLE_L, & g_robot_pos, g_destination);
-                    tableLR[0] = true;
-                    divide();
-                    g_i++;
-                    break;
-                }
+        case 1: // 白いドリンクの運搬
+            main_move(g_object, g_i, & g_robot_pos, g_destination);
+            pick();
+            if (g_object[TABLE_R].tempreture > 40 && g_object[TABLE_L].tempreture > 40) {
+                g_object[COUNTER].position.x = g_robot_pos.x;
+                main_move(g_object, COUNTER, & g_robot_pos, g_destination);
+                divide();
+                g_i++;
+                break;
+            } else if (g_object[TABLE_R].tempreture < 20) {
+                main_move(g_object, TABLE_R, & g_robot_pos, g_destination);
+                tableLR[1] = true;
+                divide();
+                g_i++;
+                break;
+            } else if (g_object[TABLE_L].tempreture < 20) {
+                main_move(g_object, TABLE_L, & g_robot_pos, g_destination);
+                tableLR[0] = true;
+                divide();
+                g_i++;
+                break;
+            }
 
-                case 2:
-                    main_move(g_object, g_i, & g_robot_pos, g_destination);
-                    pick();
-                    if (tableLR[0] == false && g_object[TABLE_L].tempreture > 40) {
-                        main_move(g_object, TABLE_L, & g_robot_pos, g_destination);
-                        tableLR[0] = true;
-                        divide();
-                        g_i++;
-                        break;
-                    } else if (tableLR[1] == false && g_object[TABLE_R].tempreture > 40) {
-                        main_move(g_object, TABLE_R, & g_robot_pos, g_destination);
-                        tableLR[1] = true;
-                        divide();
-                        g_i++;
-                        break;
-                    } else {
-                        g_object[COUNTER].position.x = g_robot_pos.x;
-                        main_move(g_object, COUNTER, & g_robot_pos, g_destination);
-                        divide();
-                        g_i++;
-                        break;
-                    }
+        case 2:
+            main_move(g_object, g_i, & g_robot_pos, g_destination);
+            pick();
+            if (tableLR[0] == false && g_object[TABLE_L].tempreture > 40) {
+                main_move(g_object, TABLE_L, & g_robot_pos, g_destination);
+                tableLR[0] = true;
+                divide();
+                g_i++;
+                break;
+            } else if (tableLR[1] == false && g_object[TABLE_R].tempreture > 40) {
+                main_move(g_object, TABLE_R, & g_robot_pos, g_destination);
+                tableLR[1] = true;
+                divide();
+                g_i++;
+                break;
+            } else {
+                g_object[COUNTER].position.x = g_robot_pos.x;
+                main_move(g_object, COUNTER, & g_robot_pos, g_destination);
+                divide();
+                g_i++;
+                break;
+            }
 
-                    case 3:
-                        main_move(g_object, g_i, & g_robot_pos, g_destination);
-                        pick();
-                        if (tableLR[0] == false && g_object[TABLE_L].tempreture < 20) {
-                            main_move(g_object, TABLE_L, & g_robot_pos, g_destination);
-                            tableLR[0] = true;
-                            divide();
-                            g_i++;
-                            break;
-                        } else if (tableLR[1] == false && g_object[TABLE_R].tempreture < 20) {
-                            main_move(g_object, TABLE_R, & g_robot_pos, g_destination);
-                            tableLR[1] = true;
-                            divide();
-                            g_i++;
-                            break;
-                        } else {
-                            g_object[COUNTER].position.x = g_robot_pos.x;
-                            main_move(g_object, COUNTER, & g_robot_pos, g_destination);
-                            divide();
-                            g_i++;
-                            break;
-                        }
-                        case 4:
-                            digitalWrite(AIN1, LOW);
-                            digitalWrite(AIN2, LOW);
-                            digitalWrite(BIN1, LOW);
-                            digitalWrite(BIN2, LOW);
-                            analogWrite(PWMA, 0);
-                            analogWrite(PWMB, 0);
+        case 3:
+            main_move(g_object, g_i, & g_robot_pos, g_destination);
+            pick();
+            if (tableLR[0] == false && g_object[TABLE_L].tempreture < 20) {
+                main_move(g_object, TABLE_L, & g_robot_pos, g_destination);
+                tableLR[0] = true;
+                divide();
+                g_i++;
+                break;
+            } else if (tableLR[1] == false && g_object[TABLE_R].tempreture < 20) {
+                main_move(g_object, TABLE_R, & g_robot_pos, g_destination);
+                tableLR[1] = true;
+                divide();
+                g_i++;
+                break;
+            } else {
+                g_object[COUNTER].position.x = g_robot_pos.x;
+                main_move(g_object, COUNTER, & g_robot_pos, g_destination);
+                divide();
+                g_i++;
+                break;
+            }
+
+        case 4:
+            digitalWrite(AIN1, LOW);
+            digitalWrite(AIN2, LOW);
+            digitalWrite(BIN1, LOW);
+            digitalWrite(BIN2, LOW);
+            analogWrite(PWMA, 0);
+            analogWrite(PWMB, 0);
 
     }
 }
